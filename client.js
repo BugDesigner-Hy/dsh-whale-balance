@@ -122,7 +122,16 @@ window.__ModuleLoader__.load({
 
     const STYLE = [
       '.bv-root{position:fixed;z-index:40;display:flex;flex-direction:column;align-items:flex-end;pointer-events:none;font-family:inherit}',
-      '.bv-button{pointer-events:auto;touch-action:none;user-select:none;position:relative;display:flex;align-items:center;justify-content:center;width:46px;height:46px;margin:0;padding:0;border:1px solid var(--dsw-alias-border-l1);border-radius:15px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);cursor:grab;box-shadow:0 6px 18px rgba(15,23,42,.10);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}',
+      '.bv-button{box-sizing:border-box;pointer-events:auto;touch-action:none;user-select:none;position:relative;display:flex;align-items:center;justify-content:center;width:46px;height:46px;margin:0;padding:0 7px;border:1px solid var(--dsw-alias-border-l1);border-radius:15px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);cursor:grab;overflow:hidden;box-shadow:0 6px 18px rgba(15,23,42,.10);transition:width .32s cubic-bezier(.22,1,.36,1),transform .18s ease,box-shadow .18s ease,border-color .18s ease}',
+      '.bv-root[data-expanded="true"] .bv-button{width:176px}',
+      '.bv-mark{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:100%}',
+      '.bv-lcd{box-sizing:border-box;position:relative;flex:1 1 0;min-width:0;height:34px;margin-left:0;padding:5px 7px 3px;border-radius:7px;background:linear-gradient(180deg,#d6dcc6,#b9c3a3);color:#1d2418;opacity:0;transform:translateX(-6px);transition:opacity .18s ease,transform .26s ease;overflow:hidden;box-shadow:inset 0 2px 4px rgba(30,40,20,.26),inset 0 -1px 2px rgba(255,255,255,.35)}',
+      '.bv-lcd::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.30),rgba(255,255,255,0) 46%);pointer-events:none}',
+      '.bv-root[data-expanded="true"] .bv-lcd{opacity:1;transform:none;margin-left:8px}',
+      '.bv-lcd-tag{position:absolute;left:7px;top:2px;font-size:6px;line-height:1;font-weight:700;letter-spacing:.14em;opacity:.45;text-transform:uppercase}',
+      '.bv-lcd-body{display:flex;align-items:center;gap:3px;height:100%;padding-top:4px;box-sizing:border-box}',
+      '.bv-lcd-cur{flex:none;font-size:10px;line-height:1;font-weight:700;opacity:.7}',
+      '.bv-lcd-svg{display:block;max-width:100%}',
       '.bv-button:hover{border-color:var(--dsw-alias-border-l2);box-shadow:0 12px 26px rgba(15,23,42,.16)}',
       '.bv-button:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px}',
       '.bv-root[data-dragging="true"] .bv-button{cursor:grabbing;transform:none;box-shadow:0 16px 32px rgba(15,23,42,.22)}',
@@ -472,6 +481,124 @@ window.__ModuleLoader__.load({
       )
     }
 
+    /*
+     * Seven-segment LCD face. Every digit draws all seven bars; the unlit ones
+     * stay at 7% opacity, which is what makes it read as a real LCD rather than
+     * a font.
+     */
+    const LCD_BARS = [
+      { id: 'a', x: 2, y: 0.6, width: 6, height: 1.35 },
+      { id: 'g', x: 2, y: 7.3, width: 6, height: 1.35 },
+      { id: 'd', x: 2, y: 14.05, width: 6, height: 1.35 },
+      { id: 'f', x: 0.7, y: 2.45, width: 1.35, height: 4.45 },
+      { id: 'b', x: 7.95, y: 2.45, width: 1.35, height: 4.45 },
+      { id: 'e', x: 0.7, y: 8.9, width: 1.35, height: 4.45 },
+      { id: 'c', x: 7.95, y: 8.9, width: 1.35, height: 4.45 },
+    ]
+    const LCD_DIGITS = {
+      '0': 'abcdef',
+      '1': 'bc',
+      '2': 'abged',
+      '3': 'abgcd',
+      '4': 'fgbc',
+      '5': 'afgcd',
+      '6': 'afgecd',
+      '7': 'abc',
+      '8': 'abcdefg',
+      '9': 'abcdfg',
+      '-': 'g',
+    }
+
+    function LcdDigits(props) {
+      const cells = []
+      let x = 0
+      for (const character of props.text) {
+        if (character === '.') {
+          cells.push({ key: cells.length, x, dot: true })
+          x += 4
+        } else {
+          cells.push({ key: cells.length, x, character })
+          x += 12
+        }
+      }
+      const width = Math.max(10, x - 2)
+      return h(
+        'svg',
+        {
+          className: 'bv-lcd-svg',
+          viewBox: '0 0 ' + width + ' 16',
+          width: width * 1.15,
+          height: 18.4,
+          preserveAspectRatio: 'xMinYMid meet',
+          'aria-hidden': true,
+          focusable: 'false',
+        },
+        cells.map((cell) =>
+          h(
+            'g',
+            { key: cell.key, transform: 'translate(' + cell.x + ',0)' },
+            cell.dot
+              ? h('rect', { x: 1.2, y: 13.7, width: 1.9, height: 1.9, rx: 0.35, fill: 'currentColor' })
+              : LCD_BARS.map((bar) =>
+                  h('rect', {
+                    key: bar.id,
+                    x: bar.x,
+                    y: bar.y,
+                    width: bar.width,
+                    height: bar.height,
+                    rx: 0.45,
+                    fill: 'currentColor',
+                    opacity: (LCD_DIGITS[cell.character] || '').includes(bar.id) ? 1 : 0.07,
+                  })
+                )
+          )
+        )
+      )
+    }
+
+    function prefersReducedMotion() {
+      try {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      } catch (_error) {
+        return false
+      }
+    }
+
+    function scramble(text) {
+      let result = ''
+      for (const character of text) {
+        if (character >= '0' && character <= '9') result += String(Math.floor(Math.random() * 10))
+        else result += character
+      }
+      return result
+    }
+
+    /** The LCD face; a changed amount briefly churns its digits like a meter. */
+    function LcdAmount(props) {
+      const [shown, setShown] = React.useState(props.value)
+      const previous = React.useRef(props.value)
+      React.useEffect(() => {
+        if (previous.current === props.value) return undefined
+        previous.current = props.value
+        if (prefersReducedMotion()) {
+          setShown(props.value)
+          return undefined
+        }
+        let frame = 0
+        const timer = window.setInterval(() => {
+          frame += 1
+          if (frame >= 3) {
+            window.clearInterval(timer)
+            setShown(props.value)
+            return
+          }
+          setShown(scramble(props.value))
+        }, 55)
+        return () => window.clearInterval(timer)
+      }, [props.value])
+      return h(LcdDigits, { text: shown })
+    }
+
     function Whale(props) {
       const palette = props.low ? WATER_LOW : WATER
       const offset = (1 - props.level) * WHALE_HEIGHT
@@ -534,6 +661,7 @@ window.__ModuleLoader__.load({
       const [ledger, setLedger] = React.useState(loadLedger)
       const [settings, setSettings] = React.useState(loadSettings)
       const [editing, setEditing] = React.useState(false)
+      const [expanded, setExpanded] = React.useState(false)
 
       const rootRef = React.useRef(null)
       const buttonRef = React.useRef(null)
@@ -824,6 +952,7 @@ window.__ModuleLoader__.load({
       const low = snapshot.status === 'ready' && selected !== null && usableBalance < lowAt
       const daysLeft = dailyRate > 0.01 && usableBalance > 0 ? usableBalance / dailyRate : null
       const spendObserved = (ledger[selectedCurrency] || []).length >= 2
+      const lcdText = snapshot.status === 'ready' ? numberText(usableBalance) : ''
 
       const updatePlacement = () => {
         const element = rootRef.current
@@ -925,8 +1054,9 @@ window.__ModuleLoader__.load({
           suppressClick.current = false
           return
         }
-        /* The mark only opens its panel; top-up lives on the panel's own link. */
-        openTip()
+        /* The mark never navigates: it unfolds the LCD face and folds it back. */
+        setExpanded((value) => !value)
+        setOpen(false)
       }
 
       const selectCurrency = (next) => {
@@ -1111,6 +1241,7 @@ window.__ModuleLoader__.load({
           'data-open': open ? 'true' : 'false',
           'data-status': snapshot.status,
           'data-low': low ? 'true' : 'false',
+          'data-expanded': expanded ? 'true' : 'false',
           'data-dragging': dragging ? 'true' : 'false',
           'data-flip': placement.flip ? 'true' : 'false',
           'data-align': placement.align,
@@ -1120,13 +1251,17 @@ window.__ModuleLoader__.load({
             if (!event.currentTarget.contains(event.relatedTarget)) scheduleClose()
           },
           onKeyDown: (event) => {
-            if (event.key !== 'Escape' || !open) return
-            if (editing) {
-              setEditing(false)
+            if (event.key !== 'Escape') return
+            if (open) {
+              if (editing) {
+                setEditing(false)
+                return
+              }
+              setOpen(false)
+              if (buttonRef.current !== null) buttonRef.current.focus()
               return
             }
-            setOpen(false)
-            if (buttonRef.current !== null) buttonRef.current.focus()
+            if (expanded) setExpanded(false)
           },
         },
         h('style', { key: 'style' }, STYLE),
@@ -1210,6 +1345,7 @@ window.__ModuleLoader__.load({
             type: 'button',
             className: 'bv-button',
             'aria-label': label,
+            'aria-expanded': expanded ? 'true' : 'false',
             'aria-describedby': open ? 'bv-vessel-tip' : undefined,
             onMouseEnter: openTip,
             onMouseLeave: scheduleClose,
@@ -1219,7 +1355,18 @@ window.__ModuleLoader__.load({
             onPointerCancel: endDrag,
             onClick,
           },
-          h(Whale, { level, low })
+          h('span', { key: 'mark', className: 'bv-mark' }, h(Whale, { level, low })),
+          h(
+            'span',
+            { key: 'lcd', className: 'bv-lcd', 'aria-hidden': expanded ? undefined : 'true' },
+            h('span', { className: 'bv-lcd-tag' }, selectedCurrency),
+            h(
+              'span',
+              { className: 'bv-lcd-body' },
+              h('span', { className: 'bv-lcd-cur' }, symbolOf(selectedCurrency)),
+              h(LcdAmount, { value: lcdText })
+            )
+          )
         )
       )
     }

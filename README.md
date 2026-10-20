@@ -29,11 +29,12 @@ Then enable **Whale Balance** on the Plugins page. The plugin is also listed in 
 ### What you get
 
 - A 46px floating whale mark in the bottom-right corner (`shell.overlay`). Drag it anywhere; the position is remembered and clamped to the window.
+- Clicking the mark unfolds it into a pill with a Casio-style LCD face on the right showing the live total: seven-segment digits, faint ghost segments, and a short digit churn when the amount changes. Click again to fold it back; otherwise it stays open.
 - Water height = `balance / full amount`, capped at full. The full amount is per currency and set in the panel's gear.
 - Two drifting wave layers inside the whale silhouette, plus a ±4° sway of the mark so the tail moves most.
 - Live balance from the account watch stream: login, top-up and sign-out push a frame immediately. Falls back to 60 s polling when the stream is unavailable.
 - Hover panel: wallet totals with the bonus share in parentheses (gift icon + amount); click a currency to make it the vessel's basis. Also today's and last-7-day spend, an estimate of remaining days, a low-balance warning, refresh, and **Top up**.
-- Clicking the mark only opens the panel — it never navigates; top-up has its own link.
+- Clicking the mark only unfolds or folds the LCD face — it never navigates; top-up has its own link.
 - Low balance: amber water and a soft breathing glow around the mark's edge. The threshold is either an amount or a percentage of the full amount.
 - Only theme tokens for the container, focus rings and text; `prefers-reduced-motion` disables the ripples, sway, breathing glow and spinner. UI is localized (English / Chinese).
 
@@ -99,7 +100,7 @@ dsh plugin --profile desktop add "git+https://github.com/BugDesigner-Hy/dsh-whal
 `shell.overlay` 里的一块 46px 悬浮徽标，默认在窗口右下角（距边 20px），不占布局、不遮挡滚动区域。
 
 - **拖动**：按住徽标可拖到任意位置，松手后记住坐标（窗口缩小时会自动收回可视区）。
-- **点击**：只展开面板，不做任何跳转；充值走面板里的「去充值」链接。
+- **点击展开**：徽标向左展开成一条胶囊，右侧亮起电子表风格的 LCD 实时余额（七段数字、未点亮的「幽灵段」、金额变化时数字快速滚动一下）；再点一次收回，不点就一直保持展开。全程不做任何跳转，充值仍走面板里的「去充值」。
 - **游动**：鲸鱼以身体为轴微微摆动（约 ±4°），尾巴的摆幅最明显；`prefers-reduced-motion` 下停止。
 - **悬停 / 键盘聚焦**：在水杯上方展开面板（靠近窗口顶部时自动翻到下方，靠近左侧时改为左对齐）。
 - **面板右上角的齿轮**：切换到设置，改完立即生效并保存；`Esc` 先退出设置、再收起面板。
