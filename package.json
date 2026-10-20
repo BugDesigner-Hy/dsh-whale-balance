@@ -2,7 +2,7 @@
   "name": "dsh-whale-balance",
   "version": "1.0.0",
   "type": "module",
-  "description": "DSH plugin: your DeepSeek account balance as water rising inside the whale mark, with exact amounts, spend stats and top-up on hover.",
+  "description": "DSH plugin: your DeepSeek account balance as water rising inside the whale mark, with exact amounts, spend stats and top-up on hover. 把 DeepSeek 账户余额显示成鲸鱼标志里上涨的水面。",
   "keywords": [
     "dsh",
     "dsh-plugin",
