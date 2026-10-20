@@ -63,7 +63,7 @@ window.__ModuleLoader__.load({
       en: {
         label: 'Account balance',
         title: 'Account balance',
-        bonusIncluded: 'incl. bonus',
+        bonus: 'Bonus',
         today: 'today',
         week: 'last 7 days',
         daysLeft: '\u2248 {n} days left',
@@ -92,7 +92,7 @@ window.__ModuleLoader__.load({
       zh: {
         label: '账户余额',
         title: '账户余额',
-        bonusIncluded: '其中赠送',
+        bonus: '赠送',
         today: '今日',
         week: '近 7 天',
         daysLeft: '约可用 {n} 天',
@@ -161,7 +161,8 @@ window.__ModuleLoader__.load({
       '.bv-wallet[aria-pressed="true"] .bv-dot{background:var(--dsw-alias-brand-primary)}',
       '.bv-amount{font-size:16px;line-height:20px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}',
       '.bv-wallet[aria-pressed="false"] .bv-amount{font-size:12.5px;line-height:17px;font-weight:500;color:var(--dsw-alias-label-secondary)}',
-      '.bv-bonus{margin:2px 0 0 11px;font-size:11.5px;line-height:16px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;white-space:nowrap}',
+      '.bv-bonus-inline{display:inline-flex;align-items:center;gap:2px;margin-left:5px;font-size:11px;line-height:14px;font-weight:500;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;white-space:nowrap}',
+      '.bv-gift{width:11px;height:11px;flex:none;opacity:.85}',
       '.bv-stats{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:7px;font-size:11px;line-height:15px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums}',
       '.bv-warn{margin-top:4px;font-size:11px;line-height:15px;color:var(--dsw-alias-state-warn-primary)}',
       '.bv-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;padding-top:7px;border-top:1px solid var(--dsw-alias-border-l1);font-size:10.5px;line-height:13px;color:var(--dsw-alias-label-secondary);white-space:nowrap}',
@@ -314,15 +315,14 @@ window.__ModuleLoader__.load({
       return SYMBOLS[currency] || ''
     }
 
-    function money(value, currency) {
-      const text = Number.isFinite(value)
+    function numberText(value) {
+      return Number.isFinite(value)
         ? value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
         : String(value)
-      return symbolOf(currency) + ' ' + text
     }
 
-    function amountText(wallet) {
-      return money(Number(wallet.balance), wallet.currency)
+    function money(value, currency) {
+      return symbolOf(currency) + ' ' + numberText(value)
     }
 
     /**
@@ -447,6 +447,29 @@ window.__ModuleLoader__.load({
             option.label
           )
         )
+      )
+    }
+
+    function GiftIcon() {
+      return h(
+        'svg',
+        {
+          className: 'bv-gift',
+          viewBox: '0 0 16 16',
+          width: 11,
+          height: 11,
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeWidth: 1.2,
+          strokeLinejoin: 'round',
+          'aria-hidden': true,
+          focusable: 'false',
+        },
+        h('rect', { x: 2.4, y: 4.9, width: 11.2, height: 2.3, rx: 0.6 }),
+        h('rect', { x: 3.2, y: 7.2, width: 9.6, height: 6.8, rx: 1 }),
+        h('path', { d: 'M8 4.9v9.1' }),
+        h('circle', { cx: 6.5, cy: 3.1, r: 1.2 }),
+        h('circle', { cx: 9.5, cy: 3.1, r: 1.2 })
       )
     }
 
@@ -990,19 +1013,22 @@ window.__ModuleLoader__.load({
             onClick: () => selectCurrency(wallet.currency),
           },
           h('span', { className: 'bv-dot' }),
-          h('span', { className: 'bv-amount' }, money(totalFor(wallet.currency), wallet.currency))
+          h('span', { className: 'bv-amount' }, money(totalFor(wallet.currency), wallet.currency)),
+          bonusFor(wallet.currency) > 0
+            ? h(
+                'span',
+                {
+                  className: 'bv-bonus-inline',
+                  'aria-label': t('bonus') + ' ' + numberText(bonusFor(wallet.currency)),
+                },
+                '(',
+                h(GiftIcon),
+                numberText(bonusFor(wallet.currency)),
+                ')'
+              )
+            : null
         )
       })
-
-      const bonusRows = snapshot.bonus
-        .filter((wallet) => wallet.currency === selectedCurrency && Number(wallet.balance) > 0)
-        .map((wallet, index) =>
-          h(
-            'div',
-            { key: 'bonus-' + wallet.currency + '-' + index, className: 'bv-bonus' },
-            t('bonusIncluded') + ' ' + amountText(wallet)
-          )
-        )
 
       const stats = []
       if (snapshot.status === 'ready') {
@@ -1166,7 +1192,7 @@ window.__ModuleLoader__.load({
             )
           ),
           snapshot.status === 'ready'
-            ? h('div', { className: 'bv-wallets' }, walletRows, bonusRows)
+            ? h('div', { className: 'bv-wallets' }, walletRows)
             : null,
           editing
             ? settingsBlock

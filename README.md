@@ -32,7 +32,7 @@ Then enable **Whale Balance** on the Plugins page. The plugin is also listed in 
 - Water height = `balance / full amount`, capped at full. The full amount is per currency and set in the panel's gear.
 - Two drifting wave layers inside the whale silhouette, plus a ±4° sway of the mark so the tail moves most.
 - Live balance from the account watch stream: login, top-up and sign-out push a frame immediately. Falls back to 60 s polling when the stream is unavailable.
-- Hover panel: wallet totals (recharge + bonus; click a currency to make it the vessel's basis), the bonus share, today's and last-7-day spend, an estimate of remaining days, a low-balance warning, refresh, and **Top up**.
+- Hover panel: wallet totals with the bonus share in parentheses (gift icon + amount); click a currency to make it the vessel's basis. Also today's and last-7-day spend, an estimate of remaining days, a low-balance warning, refresh, and **Top up**.
 - Clicking the mark only opens the panel — it never navigates; top-up has its own link.
 - Low balance: amber water, amber ring and a three-pulse alert. The threshold is either an amount or a percentage of the full amount.
 - Only theme tokens for the container, focus rings and text; `prefers-reduced-motion` disables the ripples, sway, pulses and spinner. UI is localized (English / Chinese).
@@ -109,8 +109,7 @@ dsh plugin --profile desktop add "git+https://github.com/BugDesigner-Hy/dsh-whal
 | 区域 | 内容 |
 | --- | --- |
 | 标题行 | 标题 + 齿轮（设置）+ 刷新（读取时旋转） |
-| 金额 | 各币种的可用总额（充值 + 赠送）；点某个币种把它设为水位基准 |
-| 赠送 | 总额里的赠送部分（>0 才显示） |
+| 金额 | 各币种可用总额；赠送部分紧跟在后面，括号内以礼物图标 + 金额显示；点币种把它设为水位基准 |
 | 统计 | 今日消耗、近 7 天消耗、约可用天数 |
 | 提醒 | 低于阈值时出现琥珀色提示 |
 | 底部 | 「去充值」+ 上次更新时间 |
