@@ -32,7 +32,7 @@ Then enable **Whale Balance** on the Plugins page. The plugin is also listed in 
 - Water height = `balance / full amount`, capped at full. The full amount is per currency and set in the panel's gear.
 - Two drifting wave layers inside the whale silhouette, plus a ±4° sway of the mark so the tail moves most.
 - Live balance from the account watch stream: login, top-up and sign-out push a frame immediately. Falls back to 60 s polling when the stream is unavailable.
-- Hover panel: wallet amounts (click a currency to make it the vessel's basis), bonus wallets, today's and last-7-day spend, an estimate of remaining days, a low-balance warning, refresh, and **Top up**.
+- Hover panel: wallet totals (recharge + bonus; click a currency to make it the vessel's basis), the bonus share, today's and last-7-day spend, an estimate of remaining days, a low-balance warning, refresh, and **Top up**.
 - Clicking the mark only opens the panel — it never navigates; top-up has its own link.
 - Low balance: amber water, amber ring and a three-pulse alert. The threshold is either an amount or a percentage of the full amount.
 - Only theme tokens for the container, focus rings and text; `prefers-reduced-motion` disables the ripples, sway, pulses and spinner. UI is localized (English / Chinese).
@@ -41,7 +41,7 @@ Then enable **Whale Balance** on the Plugins page. The plugin is also listed in 
 
 | Setting | Default | Notes |
 | --- | --- | --- |
-| Full amount | ¥100 (USD $15) | Balance at which the vessel is full; set 1000 to make 1000 the top |
+| Full amount | ¥100 (USD $15) | Spendable total (recharge + bonus) at which the vessel is full; set 1000 to make 1000 the top |
 | Alert mode | amount | `amount` or `percent` |
 | Alert threshold | ¥5 (USD $1) | Below it the water turns amber and the mark pulses three times |
 | Percent threshold | 10% | Used in percent mode: threshold = full amount × percent |
@@ -50,7 +50,7 @@ Full amount and amount threshold are stored per currency (CNY / USD); the percen
 
 ### How the level works
 
-- Linear: `balance / full amount`, capped at 1. 40 of 100 fills 40% of the height.
+- Linear: `(recharge + bonus) / full amount`, capped at 1. 40 of 100 fills 40% of the height.
 - Spend figures come from the balance decreases this plugin observes while the app runs, so they are an estimate, not a bill. The ledger tracks the recharge and bonus wallets together (the platform spends the bonus first), and both the today and 7-day rows are always shown — `0.00` when nothing has been observed yet.
 - Days left divides the usable total (recharge + bonus) by the extrapolated daily spend from the last seven days of observations, and stays hidden until there is at least one day of history.
 
@@ -109,8 +109,8 @@ dsh plugin --profile desktop add "git+https://github.com/BugDesigner-Hy/dsh-whal
 | 区域 | 内容 |
 | --- | --- |
 | 标题行 | 标题 + 齿轮（设置）+ 刷新（读取时旋转） |
-| 金额 | 各钱包余额；点某个币种把它设为水位基准 |
-| 赠送 | 赠送钱包余额（>0 才显示） |
+| 金额 | 各币种的可用总额（充值 + 赠送）；点某个币种把它设为水位基准 |
+| 赠送 | 总额里的赠送部分（>0 才显示） |
 | 统计 | 今日消耗、近 7 天消耗、约可用天数 |
 | 提醒 | 低于阈值时出现琥珀色提示 |
 | 底部 | 「去充值」+ 上次更新时间 |
@@ -119,7 +119,7 @@ dsh plugin --profile desktop add "git+https://github.com/BugDesigner-Hy/dsh-whal
 
 | 设置 | 默认 | 说明 |
 | --- | --- | --- |
-| 满杯金额 | ¥100（USD 为 $15） | 水位到顶对应的余额。设成 1000，就以 1000 为满杯 |
+| 满杯金额 | ¥100（USD 为 $15） | 水位到顶对应的可用总额（充值 + 赠送）。设成 1000，就以 1000 为满杯 |
 | 提醒方式 | 金额 | 可选「金额」或「百分比」 |
 | 提醒阈值 | ¥5（USD 为 $1） | 低于该金额时水体转琥珀、徽标描边变琥珀并脉冲三次 |
 | 百分比阈值 | 10% | 当提醒方式为百分比时，阈值 = 满杯金额 × 该比例 |
@@ -128,8 +128,8 @@ dsh plugin --profile desktop add "git+https://github.com/BugDesigner-Hy/dsh-whal
 
 ### 水位怎么算
 
-- 水位：**线性**，`余额 / 满杯金额`。满杯填 100、余额 40 就是四成高；超过满杯金额则封顶为满。
-- 低余额：低于你设置的金额阈值，或低于满杯金额的百分比，即触发提醒。
+- 水位：**线性**，`(充值 + 赠送) / 满杯金额`。满杯填 100、可用总额 40 就是四成高；超过满杯金额则封顶为满。
+- 低余额：可用总额（充值 + 赠送）低于你设置的金额阈值，或低于满杯金额的百分比，即触发提醒。
 - 「可用天数」用观察到的近 7 天消耗外推日均（历史不足 7 天按已观察天数等比外推，不足 1 天则不显示），分子是「充值 + 赠送」的可用总额，只是趋势参考。
 - 消耗完全来自本插件观察到的余额变化（只在应用运行时记录），是**估算**；把它当作趋势，不要当作账单。统计把「充值余额 + 赠送余额」合在一起算（平台先扣赠送），今日与近 7 天两行始终显示，尚未观察到扣费时显示 ¥0.00 并附一行说明。
 

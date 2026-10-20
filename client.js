@@ -63,7 +63,7 @@ window.__ModuleLoader__.load({
       en: {
         label: 'Account balance',
         title: 'Account balance',
-        bonus: 'Bonus',
+        bonusIncluded: 'incl. bonus',
         today: 'today',
         week: 'last 7 days',
         daysLeft: '\u2248 {n} days left',
@@ -92,7 +92,7 @@ window.__ModuleLoader__.load({
       zh: {
         label: '账户余额',
         title: '账户余额',
-        bonus: '赠送',
+        bonusIncluded: '其中赠送',
         today: '今日',
         week: '近 7 天',
         daysLeft: '约可用 {n} 天',
@@ -766,10 +766,17 @@ window.__ModuleLoader__.load({
         wallets[0] ||
         null
       const selectedCurrency = selected === null ? currency || 'CNY' : selected.currency
+      const bonusFor = (target) =>
+        snapshot.bonus
+          .filter((wallet) => wallet.currency === target)
+          .reduce((sum, wallet) => sum + (Number(wallet.balance) || 0), 0)
+      const totalFor = (target) => {
+        const wallet = wallets.find((item) => item.currency === target)
+        return (wallet === undefined ? 0 : Number(wallet.balance) || 0) + bonusFor(target)
+      }
       const balance = selected === null ? 0 : Number(selected.balance)
-      const bonusBalance = snapshot.bonus
-        .filter((wallet) => wallet.currency === selectedCurrency)
-        .reduce((sum, wallet) => sum + (Number(wallet.balance) || 0), 0)
+      const bonusBalance = bonusFor(selectedCurrency)
+      /* The vessel, the alert and the runway all use recharge + bonus. */
       const usableBalance = balance + bonusBalance
       const stamp = now || Date.now()
       const todaySpend = spendBetween(ledger, selectedCurrency, startOfToday(stamp), stamp)
@@ -793,8 +800,8 @@ window.__ModuleLoader__.load({
           ? settings.low[selectedCurrency]
           : FLOOR_LOW[selectedCurrency] || FLOOR_LOW.CNY
       const lowAt = settings.alert === 'percent' ? fullAt * (settings.percent / 100) : fixedLow
-      const level = snapshot.status === 'ready' && selected !== null ? fillOf(balance, fullAt) : 0
-      const low = snapshot.status === 'ready' && selected !== null && balance < lowAt
+      const level = snapshot.status === 'ready' && selected !== null ? fillOf(usableBalance, fullAt) : 0
+      const low = snapshot.status === 'ready' && selected !== null && usableBalance < lowAt
       const daysLeft = dailyRate > 0.01 && usableBalance > 0 ? usableBalance / dailyRate : null
       const spendObserved = (ledger[selectedCurrency] || []).length >= 2
 
@@ -967,7 +974,8 @@ window.__ModuleLoader__.load({
         return minutes < 1 ? t('updatedNow') : t('updatedMinutes').replace('{n}', String(minutes))
       }
 
-      const amountLabel = selected === null ? t('label') : t('label') + ' ' + amountText(selected)
+      const amountLabel =
+        selected === null ? t('label') : t('label') + ' ' + money(usableBalance, selectedCurrency)
       const label = low ? amountLabel + ' \u00b7 ' + t('lowHint') : amountLabel
 
       const walletRows = wallets.map((wallet, index) => {
@@ -982,17 +990,17 @@ window.__ModuleLoader__.load({
             onClick: () => selectCurrency(wallet.currency),
           },
           h('span', { className: 'bv-dot' }),
-          h('span', { className: 'bv-amount' }, amountText(wallet))
+          h('span', { className: 'bv-amount' }, money(totalFor(wallet.currency), wallet.currency))
         )
       })
 
       const bonusRows = snapshot.bonus
-        .filter((wallet) => Number(wallet.balance) > 0)
+        .filter((wallet) => wallet.currency === selectedCurrency && Number(wallet.balance) > 0)
         .map((wallet, index) =>
           h(
             'div',
             { key: 'bonus-' + wallet.currency + '-' + index, className: 'bv-bonus' },
-            t('bonus') + ' ' + amountText(wallet)
+            t('bonusIncluded') + ' ' + amountText(wallet)
           )
         )
 
