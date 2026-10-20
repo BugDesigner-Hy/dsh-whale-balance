@@ -66,7 +66,6 @@ window.__ModuleLoader__.load({
         bonus: 'Bonus',
         today: 'today',
         week: 'last 7 days',
-        full: 'full',
         daysLeft: '\u2248 {n} days left',
         hoursLeft: '\u2248 {n} h left',
         spendHint: 'No deduction observed yet \u2014 spend is estimated from balance changes.',
@@ -96,7 +95,6 @@ window.__ModuleLoader__.load({
         bonus: '赠送',
         today: '今日',
         week: '近 7 天',
-        full: '满杯',
         daysLeft: '约可用 {n} 天',
         hoursLeft: '约可用 {n} 小时',
         spendHint: '尚未观察到扣费；消耗按余额变化估算。',
@@ -1000,7 +998,6 @@ window.__ModuleLoader__.load({
 
       const stats = []
       if (snapshot.status === 'ready') {
-        stats.push(t('full') + ' ' + money(fullAt, selectedCurrency))
         stats.push(t('today') + ' ' + money(todaySpend, selectedCurrency))
         stats.push(t('week') + ' ' + money(weekSpend, selectedCurrency))
         if (daysLeft !== null) stats.push(daysText(daysLeft, t))
