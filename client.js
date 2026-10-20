@@ -18,7 +18,7 @@
  * here is original.
  */
 window.__ModuleLoader__.load({
-  id: '@local/balance-vessel',
+  id: 'dsh-whale-balance',
   factory(require) {
     const React = require('react')
     const h = React.createElement
