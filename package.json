@@ -1,0 +1,55 @@
+{
+  "name": "dsh-whale-balance",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "DSH plugin: your DeepSeek account balance as water rising inside the whale mark, with exact amounts, spend stats and top-up on hover.",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "balance",
+    "account",
+    "whale",
+    "water",
+    "余额",
+    "水杯",
+    "plugin"
+  ],
+  "author": "BugDesigner-Hy",
+  "license": "MIT",
+  "homepage": "https://github.com/BugDesigner-Hy/dsh-whale-balance#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BugDesigner-Hy/dsh-whale-balance.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BugDesigner-Hy/dsh-whale-balance/issues"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ]
+    }
+  }
+}
