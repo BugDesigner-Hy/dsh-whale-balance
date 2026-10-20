@@ -29,7 +29,7 @@ Then enable **Whale Balance** on the Plugins page. The plugin is also listed in 
 ### What you get
 
 - A 46px floating whale mark in the bottom-right corner (`shell.overlay`). Drag it anywhere; the position is remembered and clamped to the window.
-- Clicking the mark unfolds it into a pill with a Casio-style LCD face on the right showing the live total: seven-segment digits, faint ghost segments, and a short digit churn when the amount changes. Click again to fold it back; otherwise it stays open.
+- Clicking the mark unfolds it into a pill with a Casio-style LCD face on the right showing the live total: seven-segment digits, faint ghost segments, and a short digit churn when the amount changes. It unfolds toward the side with room — left by default, and when a dragged chip cannot fit to the right, it keeps its right edge and grows leftwards instead of leaving the window. Click again to fold it back; otherwise it stays open.
 - Water height = `balance / full amount`, capped at full. The full amount is per currency and set in the panel's gear.
 - Two drifting wave layers inside the whale silhouette, plus a ±4° sway of the mark so the tail moves most.
 - Live balance from the account watch stream: login, top-up and sign-out push a frame immediately. Falls back to 60 s polling when the stream is unavailable.
@@ -100,7 +100,7 @@ dsh plugin --profile desktop add "git+https://github.com/BugDesigner-Hy/dsh-whal
 `shell.overlay` 里的一块 46px 悬浮徽标，默认在窗口右下角（距边 20px），不占布局、不遮挡滚动区域。
 
 - **拖动**：按住徽标可拖到任意位置，松手后记住坐标（窗口缩小时会自动收回可视区）。
-- **点击展开**：徽标向左展开成一条胶囊，右侧亮起电子表风格的 LCD 实时余额（七段数字、未点亮的「幽灵段」、金额变化时数字快速滚动一下）；再点一次收回，不点就一直保持展开。全程不做任何跳转，充值仍走面板里的「去充值」。
+- **点击展开**：徽标展开成一条胶囊，右侧亮起电子表风格的 LCD 实时余额（七段数字、未点亮的「幽灵段」、金额变化时数字快速滚动一下）；再点一次收回，不点就一直保持展开。默认贴着右边，所以是向左展开；如果拖到了别处，会先看右侧是否放得下，放不下就固定右边缘、向左展开，绝不越出窗口。全程不做任何跳转。
 - **游动**：鲸鱼以身体为轴微微摆动（约 ±4°），尾巴的摆幅最明显；`prefers-reduced-motion` 下停止。
 - **悬停 / 键盘聚焦**：在水杯上方展开面板（靠近窗口顶部时自动翻到下方，靠近左侧时改为左对齐）。
 - **面板右上角的齿轮**：切换到设置，改完立即生效并保存；`Esc` 先退出设置、再收起面板。

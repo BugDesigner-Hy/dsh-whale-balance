@@ -32,6 +32,7 @@ window.__ModuleLoader__.load({
     const CURRENCY_KEY = 'balance-vessel:v1:currency'
     const SETTINGS_KEY = 'balance-vessel:v1:settings'
     const TOOLTIP_FLIP_AT = 200
+    const EXPANDED_WIDTH = 176
     const TOOLTIP_ALIGN_AT = 286
 
     /* Vessel geometry: the official mark's own viewBox. */
@@ -122,7 +123,7 @@ window.__ModuleLoader__.load({
 
     const STYLE = [
       '.bv-root{position:fixed;z-index:40;display:flex;flex-direction:column;align-items:flex-end;pointer-events:none;font-family:inherit}',
-      '.bv-button{box-sizing:border-box;pointer-events:auto;touch-action:none;user-select:none;position:relative;display:flex;align-items:center;justify-content:center;width:46px;height:46px;margin:0;padding:0 7px;border:1px solid var(--dsw-alias-border-l1);border-radius:15px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);cursor:grab;overflow:hidden;box-shadow:0 6px 18px rgba(15,23,42,.10);transition:width .32s cubic-bezier(.22,1,.36,1),transform .18s ease,box-shadow .18s ease,border-color .18s ease}',
+      '.bv-button{box-sizing:border-box;pointer-events:auto;touch-action:none;user-select:none;position:relative;display:flex;align-items:center;justify-content:center;width:46px;max-width:calc(100vw - 16px);height:46px;margin:0;padding:0 7px;border:1px solid var(--dsw-alias-border-l1);border-radius:15px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);cursor:grab;overflow:hidden;box-shadow:0 6px 18px rgba(15,23,42,.10);transition:width .32s cubic-bezier(.22,1,.36,1),transform .18s ease,box-shadow .18s ease,border-color .18s ease}',
       '.bv-root[data-expanded="true"] .bv-button{width:176px}',
       '.bv-mark{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:100%}',
       '.bv-lcd{box-sizing:border-box;position:relative;flex:1 1 0;min-width:0;height:34px;margin-left:0;padding:5px 0 3px;border-radius:7px;background:linear-gradient(180deg,#d6dcc6,#b9c3a3);color:#1d2418;opacity:0;transform:translateX(-6px);transition:opacity .18s ease,transform .26s ease;overflow:hidden;box-shadow:inset 0 2px 4px rgba(30,40,20,.26),inset 0 -1px 2px rgba(255,255,255,.35)}',
@@ -894,14 +895,14 @@ window.__ModuleLoader__.load({
 
       React.useEffect(() => {
         const onResize = () => {
-          setPosition((previous) =>
-            previous === null
-              ? previous
-              : {
-                  left: clamp(previous.left, 8, Math.max(8, window.innerWidth - 54)),
-                  top: clamp(previous.top, 8, Math.max(8, window.innerHeight - 54)),
-                }
-          )
+          setPosition((previous) => {
+            if (previous === null) return previous
+            const top = clamp(previous.top, 8, Math.max(8, window.innerHeight - 54))
+            if (previous.right !== undefined) {
+              return { right: clamp(previous.right, 8, Math.max(8, window.innerWidth - 54)), top }
+            }
+            return { left: clamp(previous.left, 8, Math.max(8, window.innerWidth - 54)), top }
+          })
         }
         window.addEventListener('resize', onResize)
         return () => window.removeEventListener('resize', onResize)
@@ -1054,7 +1055,29 @@ window.__ModuleLoader__.load({
           suppressClick.current = false
           return
         }
-        /* The mark never navigates: it unfolds the LCD face and folds it back. */
+        /*
+         * The mark never navigates: it unfolds the LCD face and folds it back.
+         * When a dragged chip has no room to unfold to the right, it switches to
+         * a right anchor first, so the right edge stays put and the pill grows
+         * leftwards instead of leaving the window.
+         */
+        if (!expanded && position !== null) {
+          const element = rootRef.current
+          if (element !== null) {
+            const rect = element.getBoundingClientRect()
+            const delta = EXPANDED_WIDTH - rect.width
+            const roomRight = window.innerWidth - 8 - rect.right
+            const roomLeft = rect.left - 8
+            if (roomRight < delta && roomLeft > roomRight) {
+              setPosition({
+                right: clamp(window.innerWidth - rect.right, 8, Math.max(8, window.innerWidth - 54)),
+                top: rect.top,
+              })
+            } else {
+              setPosition({ left: rect.left, top: rect.top })
+            }
+          }
+        }
         setExpanded((value) => !value)
         setOpen(false)
       }
@@ -1228,9 +1251,12 @@ window.__ModuleLoader__.load({
               ? t('error')
               : t('loading')
 
-      const rootStyle = position
-        ? { left: position.left + 'px', top: position.top + 'px', right: 'auto', bottom: 'auto' }
-        : { right: '20px', bottom: '20px' }
+      const rootStyle =
+        position === null
+          ? { right: '20px', bottom: '20px' }
+          : position.right !== undefined
+            ? { right: position.right + 'px', top: position.top + 'px', left: 'auto', bottom: 'auto' }
+            : { right: 'auto', left: position.left + 'px', top: position.top + 'px', bottom: 'auto' }
 
       return h(
         'div',
