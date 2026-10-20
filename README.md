@@ -51,8 +51,8 @@ Full amount and amount threshold are stored per currency (CNY / USD); the percen
 ### How the level works
 
 - Linear: `balance / full amount`, capped at 1. 40 of 100 fills 40% of the height.
-- Spend figures come from the balance decreases this plugin observes while the app runs, so they are an estimate, not a bill.
-- Days left extrapolates the daily spend from the last seven days of observations and stays hidden until there is at least one day of history.
+- Spend figures come from the balance decreases this plugin observes while the app runs, so they are an estimate, not a bill. The ledger tracks the recharge and bonus wallets together (the platform spends the bonus first), and both the today and 7-day rows are always shown — `0.00` when nothing has been observed yet.
+- Days left divides the usable total (recharge + bonus) by the extrapolated daily spend from the last seven days of observations, and stays hidden until there is at least one day of history.
 
 ### Where the data comes from
 
@@ -130,8 +130,8 @@ dsh plugin --profile desktop add "git+https://github.com/BugDesigner-Hy/dsh-whal
 
 - 水位：**线性**，`余额 / 满杯金额`。满杯填 100、余额 40 就是四成高；超过满杯金额则封顶为满。
 - 低余额：低于你设置的金额阈值，或低于满杯金额的百分比，即触发提醒。
-- 「可用天数」用观察到的近 7 天消耗外推日均（历史不足 7 天按已观察天数等比外推，不足 1 天则不显示），只是趋势参考。
-- 消耗完全来自本插件观察到的余额变化（只在应用运行时记录），是**估算**；把它当作趋势，不要当作账单。
+- 「可用天数」用观察到的近 7 天消耗外推日均（历史不足 7 天按已观察天数等比外推，不足 1 天则不显示），分子是「充值 + 赠送」的可用总额，只是趋势参考。
+- 消耗完全来自本插件观察到的余额变化（只在应用运行时记录），是**估算**；把它当作趋势，不要当作账单。统计把「充值余额 + 赠送余额」合在一起算（平台先扣赠送），今日与近 7 天两行始终显示，尚未观察到扣费时显示 ¥0.00 并附一行说明。
 
 ### 数据来源
 

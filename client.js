@@ -69,6 +69,7 @@ window.__ModuleLoader__.load({
         full: 'full',
         daysLeft: '\u2248 {n} days left',
         hoursLeft: '\u2248 {n} h left',
+        spendHint: 'No deduction observed yet \u2014 spend is estimated from balance changes.',
         lowHint: 'below the alert threshold',
         loading: 'Reading balance\u2026',
         signedOut: 'Sign in to see your balance',
@@ -98,6 +99,7 @@ window.__ModuleLoader__.load({
         full: '满杯',
         daysLeft: '约可用 {n} 天',
         hoursLeft: '约可用 {n} 小时',
+        spendHint: '尚未观察到扣费；消耗按余额变化估算。',
         lowHint: '低于提醒阈值',
         loading: '正在读取余额…',
         signedOut: '登录后可查看余额',
@@ -572,15 +574,25 @@ window.__ModuleLoader__.load({
         return '0.2.1-rc.2'
       }
 
-      const record = React.useCallback((wallets) => {
+      /*
+       * Record the spendable amount for the selected currency. Platform keeps
+       * the recharge wallets and the bonus wallets apart, and usage is deducted
+       * from the bonus first, so the ledger tracks their sum; otherwise today's
+       * spend would stay hidden until the bonus runs out.
+       */
+      const record = React.useCallback((wallets, bonus) => {
         if (!Array.isArray(wallets) || wallets.length === 0) return
         const preferred = currencyRef.current
         const wallet =
           wallets.find((item) => item.currency === preferred) ||
           wallets.find((item) => item.currency === 'CNY') ||
           wallets[0]
-        const amount = Number(wallet.balance)
-        if (!Number.isFinite(amount)) return
+        const normal = Number(wallet.balance)
+        if (!Number.isFinite(normal)) return
+        const bonusTotal = (Array.isArray(bonus) ? bonus : [])
+          .filter((item) => item.currency === wallet.currency)
+          .reduce((sum, item) => sum + (Number(item.balance) || 0), 0)
+        const amount = normal + Math.max(0, bonusTotal)
         const at = Date.now()
         setLedger((previous) => {
           const next = Object.assign({}, previous)
@@ -625,7 +637,7 @@ window.__ModuleLoader__.load({
           setSnapshot((previous) =>
             Object.assign({}, previous, { status: 'ready', wallets, bonus, at: Date.now() })
           )
-          record(wallets)
+          record(wallets, bonus)
         } catch (_error) {
           if (mine === generation.current && mounted.current) {
             setSnapshot((previous) => Object.assign({}, previous, { status: 'error' }))
@@ -757,6 +769,10 @@ window.__ModuleLoader__.load({
         null
       const selectedCurrency = selected === null ? currency || 'CNY' : selected.currency
       const balance = selected === null ? 0 : Number(selected.balance)
+      const bonusBalance = snapshot.bonus
+        .filter((wallet) => wallet.currency === selectedCurrency)
+        .reduce((sum, wallet) => sum + (Number(wallet.balance) || 0), 0)
+      const usableBalance = balance + bonusBalance
       const stamp = now || Date.now()
       const todaySpend = spendBetween(ledger, selectedCurrency, startOfToday(stamp), stamp)
       const weekSpend = spendBetween(ledger, selectedCurrency, stamp - 7 * DAY_MS, stamp)
@@ -781,7 +797,8 @@ window.__ModuleLoader__.load({
       const lowAt = settings.alert === 'percent' ? fullAt * (settings.percent / 100) : fixedLow
       const level = snapshot.status === 'ready' && selected !== null ? fillOf(balance, fullAt) : 0
       const low = snapshot.status === 'ready' && selected !== null && balance < lowAt
-      const daysLeft = dailyRate > 0.01 && balance > 0 ? balance / dailyRate : null
+      const daysLeft = dailyRate > 0.01 && usableBalance > 0 ? usableBalance / dailyRate : null
+      const spendObserved = (ledger[selectedCurrency] || []).length >= 2
 
       React.useEffect(() => {
         if (low && !lowRef.current) {
@@ -984,8 +1001,8 @@ window.__ModuleLoader__.load({
       const stats = []
       if (snapshot.status === 'ready') {
         stats.push(t('full') + ' ' + money(fullAt, selectedCurrency))
-        if (todaySpend > 0) stats.push(t('today') + ' ' + money(todaySpend, selectedCurrency))
-        if (weekSpend > 0) stats.push(t('week') + ' ' + money(weekSpend, selectedCurrency))
+        stats.push(t('today') + ' ' + money(todaySpend, selectedCurrency))
+        stats.push(t('week') + ' ' + money(weekSpend, selectedCurrency))
         if (daysLeft !== null) stats.push(daysText(daysLeft, t))
       }
 
@@ -1153,6 +1170,7 @@ window.__ModuleLoader__.load({
                   'div',
                   null,
                   h('div', { className: 'bv-stats' }, stats.map((line, index) => h('span', { key: index }, line))),
+                  !spendObserved ? h('div', { className: 'bv-note' }, t('spendHint')) : null,
                   low ? h('div', { className: 'bv-warn' }, t('lowHint')) : null,
                   h(
                     'div',
