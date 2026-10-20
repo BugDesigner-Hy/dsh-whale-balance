@@ -34,8 +34,8 @@ Then enable **Whale Balance** on the Plugins page. The plugin is also listed in 
 - Live balance from the account watch stream: login, top-up and sign-out push a frame immediately. Falls back to 60 s polling when the stream is unavailable.
 - Hover panel: wallet totals with the bonus share in parentheses (gift icon + amount); click a currency to make it the vessel's basis. Also today's and last-7-day spend, an estimate of remaining days, a low-balance warning, refresh, and **Top up**.
 - Clicking the mark only opens the panel — it never navigates; top-up has its own link.
-- Low balance: amber water, amber ring and a three-pulse alert. The threshold is either an amount or a percentage of the full amount.
-- Only theme tokens for the container, focus rings and text; `prefers-reduced-motion` disables the ripples, sway, pulses and spinner. UI is localized (English / Chinese).
+- Low balance: amber water and a soft breathing glow around the mark's edge. The threshold is either an amount or a percentage of the full amount.
+- Only theme tokens for the container, focus rings and text; `prefers-reduced-motion` disables the ripples, sway, breathing glow and spinner. UI is localized (English / Chinese).
 
 ### Settings
 
@@ -43,7 +43,7 @@ Then enable **Whale Balance** on the Plugins page. The plugin is also listed in 
 | --- | --- | --- |
 | Full amount | ¥100 (USD $15) | Spendable total (recharge + bonus) at which the vessel is full; set 1000 to make 1000 the top |
 | Alert mode | amount | `amount` or `percent` |
-| Alert threshold | ¥5 (USD $1) | Below it the water turns amber and the mark pulses three times |
+| Alert threshold | ¥5 (USD $1) | Below it the water turns amber and the mark's edge glows softly |
 | Percent threshold | 10% | Used in percent mode: threshold = full amount × percent |
 
 Full amount and amount threshold are stored per currency (CNY / USD); the percentage is global. Everything lives in `localStorage` and applies immediately; **Reset** restores the defaults.
@@ -120,7 +120,7 @@ dsh plugin --profile desktop add "git+https://github.com/BugDesigner-Hy/dsh-whal
 | --- | --- | --- |
 | 满杯金额 | ¥100（USD 为 $15） | 水位到顶对应的可用总额（充值 + 赠送）。设成 1000，就以 1000 为满杯 |
 | 提醒方式 | 金额 | 可选「金额」或「百分比」 |
-| 提醒阈值 | ¥5（USD 为 $1） | 低于该金额时水体转琥珀、徽标描边变琥珀并脉冲三次 |
+| 提醒阈值 | ¥5（USD 为 $1） | 低于该金额时水体转琥珀、徽标外缘持续微微发光（呼吸感） |
 | 百分比阈值 | 10% | 当提醒方式为百分比时，阈值 = 满杯金额 × 该比例 |
 
 满杯金额与金额阈值按币种分别保存（CNY / USD 各一套），百分比是全局一个；`恢复默认` 一次还原全部。设置保存在浏览器 `localStorage`，修改后立即生效，无需重启。
@@ -163,7 +163,7 @@ ctx.get('remote.account').getBalance({ version, locale, timezoneOffsetSeconds })
 - 徽标是真正的 `<button>`：可聚焦、有含金额与低余额提示的 `aria-label`；面板关闭时用 `visibility` 隐藏，不会进入 Tab 顺序。
 - 数字输入框在失焦或回车时才提交，允许中途清空；`Esc` 在输入框内只还原输入，不关闭面板。
 - 面板不挡鼠标：只有打开时才接收指针事件，并有一段透明桥接区域，鼠标从徽标移进面板不会闪断。
-- 尊重 `prefers-reduced-motion`：关闭波纹漂移、水位过渡、低余额脉冲和刷新旋转。
+- 尊重 `prefers-reduced-motion`：关闭波纹漂移、水位过渡、低余额呼吸光与刷新旋转。
 - 文案走客户端 locale 服务（内置 en / zh）。
 
 ### 已知限制

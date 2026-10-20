@@ -126,9 +126,8 @@ window.__ModuleLoader__.load({
       '.bv-button:hover{border-color:var(--dsw-alias-border-l2);box-shadow:0 12px 26px rgba(15,23,42,.16)}',
       '.bv-button:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px}',
       '.bv-root[data-dragging="true"] .bv-button{cursor:grabbing;transform:none;box-shadow:0 16px 32px rgba(15,23,42,.22)}',
-      '.bv-root[data-low="true"] .bv-button{border-color:var(--dsw-alias-state-warn-primary);box-shadow:0 0 0 3px rgba(227,154,46,.16),0 8px 22px rgba(15,23,42,.14)}',
-      '.bv-root[data-pulse="true"] .bv-button{animation:bv-pulse 1.15s ease-in-out 3}',
-      '@keyframes bv-pulse{0%,100%{box-shadow:0 0 0 3px rgba(227,154,46,.16),0 8px 22px rgba(15,23,42,.14)}50%{box-shadow:0 0 0 9px rgba(227,154,46,0),0 10px 26px rgba(15,23,42,.18)}}',
+      '.bv-root[data-low="true"] .bv-button{border-color:var(--dsw-alias-state-warn-primary);box-shadow:0 0 0 3px rgba(227,154,46,.16),0 8px 22px rgba(15,23,42,.14);animation:bv-breathe 3.4s ease-in-out infinite}',
+      '@keyframes bv-breathe{0%,100%{box-shadow:0 0 0 2px rgba(227,154,46,.16),0 0 10px rgba(227,154,46,.10),0 8px 22px rgba(15,23,42,.12)}50%{box-shadow:0 0 0 6px rgba(227,154,46,.10),0 0 20px rgba(227,154,46,.24),0 10px 26px rgba(15,23,42,.16)}}',
       '.bv-whale{display:block;overflow:visible}',
       '.bv-swim{animation:bv-swim 4.2s ease-in-out infinite;transform-box:fill-box;transform-origin:34% 74%}',
       '@keyframes bv-swim{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}',
@@ -139,7 +138,7 @@ window.__ModuleLoader__.load({
       '.bv-highlight{animation:bv-drift 3.8s linear infinite}',
       '@keyframes bv-drift{from{transform:translateX(0)}to{transform:translateX(-11.58px)}}',
       '@keyframes bv-drift-reverse{from{transform:translateX(0)}to{transform:translateX(11.58px)}}',
-      '@media (prefers-reduced-motion:reduce){.bv-swim{animation:none}.bv-wave,.bv-wave-back,.bv-highlight{animation:none}.bv-level{transition:none}.bv-root[data-pulse="true"] .bv-button{animation:none}.bv-icon[data-spin="true"] svg{animation:none}}',
+      '@media (prefers-reduced-motion:reduce){.bv-swim{animation:none}.bv-wave,.bv-wave-back,.bv-highlight{animation:none}.bv-level{transition:none}.bv-root[data-low="true"] .bv-button{animation:none}.bv-icon[data-spin="true"] svg{animation:none}}',
       '.bv-tip{position:absolute;right:0;bottom:calc(100% + 10px);width:max-content;min-width:184px;max-width:256px;padding:10px 12px 9px;border:1px solid var(--dsw-alias-border-l1);border-radius:13px;background:var(--dsw-alias-bg-overlay);color:var(--dsw-alias-label-primary);box-shadow:0 16px 38px rgba(15,23,42,.18);opacity:0;visibility:hidden;transform:translateY(6px) scale(.985);transform-origin:bottom right;transition:opacity .16s ease,transform .16s ease;pointer-events:none;text-align:left}',
       '.bv-root[data-open="true"] .bv-tip{opacity:1;visibility:visible;transform:none;pointer-events:auto}',
       '.bv-tip::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:12px}',
@@ -530,7 +529,6 @@ window.__ModuleLoader__.load({
       const [position, setPosition] = React.useState(readPosition)
       const [dragging, setDragging] = React.useState(false)
       const [placement, setPlacement] = React.useState({ flip: false, align: 'right' })
-      const [pulse, setPulse] = React.useState(false)
       const [refreshing, setRefreshing] = React.useState(false)
       const [currency, setCurrency] = React.useState(readCurrency)
       const [ledger, setLedger] = React.useState(loadLedger)
@@ -546,7 +544,6 @@ window.__ModuleLoader__.load({
       const mounted = React.useRef(true)
       const current = React.useRef(snapshot)
       const currencyRef = React.useRef(currency)
-      const lowRef = React.useRef(false)
       current.current = snapshot
       currencyRef.current = currency
 
@@ -827,17 +824,6 @@ window.__ModuleLoader__.load({
       const low = snapshot.status === 'ready' && selected !== null && usableBalance < lowAt
       const daysLeft = dailyRate > 0.01 && usableBalance > 0 ? usableBalance / dailyRate : null
       const spendObserved = (ledger[selectedCurrency] || []).length >= 2
-
-      React.useEffect(() => {
-        if (low && !lowRef.current) {
-          lowRef.current = true
-          setPulse(true)
-          const timer = window.setTimeout(() => setPulse(false), 3600)
-          return () => window.clearTimeout(timer)
-        }
-        if (!low) lowRef.current = false
-        return undefined
-      }, [low])
 
       const updatePlacement = () => {
         const element = rootRef.current
@@ -1125,7 +1111,6 @@ window.__ModuleLoader__.load({
           'data-open': open ? 'true' : 'false',
           'data-status': snapshot.status,
           'data-low': low ? 'true' : 'false',
-          'data-pulse': pulse ? 'true' : 'false',
           'data-dragging': dragging ? 'true' : 'false',
           'data-flip': placement.flip ? 'true' : 'false',
           'data-align': placement.align,
